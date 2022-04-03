@@ -18,3 +18,10 @@ The app assumes that you have a dustsensor + environmental sensor with two conse
 5. quit the python console
 
 
+## Todo
+
+- [ ] exit via START button press
+- [ ] force update via A/B button press
+- [ ] display time of last successfull update
+- [ ] larger, easier-to-read text with units instead of json dump
+- [ ] maybe a history graph or at least up/down arrow indicating current trend
