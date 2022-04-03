@@ -10,7 +10,7 @@ import display
 sc_pm_sensor_id_ = int(badge.nvs_get_str(
     "sensorcommunity",
     "sid",
-    "39253"
+    "69759"
 ))
 sc_env_sensor_id_ = sc_pm_sensor_id_ +1
 sc_api_url_ = "https://data.sensor.community/airrohr/v1/sensor/{sensorid}/"

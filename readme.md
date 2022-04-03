@@ -1,6 +1,6 @@
 # Sensor.Community E-Paper Data Display
 
-It is a simple app to get data from an AirRohr sensor and display it in a very simple fashion.
+It is a simple app to get data from an AirRohr sensor and display it in a very simple fashion on a Sha2017 e-paper badge.
 
 The app assumes that you have a dustsensor + environmental sensor with two consecutive sensor-ids.
 
