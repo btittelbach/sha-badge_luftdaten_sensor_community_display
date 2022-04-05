@@ -71,6 +71,7 @@ def getSensorData(sids_list):
 		# 	api_fail_ct_ = api_fail_ct_ +1
 		# 	if (api_fail_ct_ > 4):
 		# 		sensordata_ = {} # delete outdated sensordata
+	sensordata_["Time"] = time.strftime("%H:%M  %Y-%m-%d UTC")
 
 def loop():
 	if not wifi.status():
@@ -80,6 +81,7 @@ def loop():
 		print("WiFi wait timed out")
 		return sc_update_interval_ * 4
 
+	wifi.ntp()
 	#get sensordata
 	print("getting data")
 	getSensorData([sc_pm_sensor_id_, sc_env_sensor_id_])
