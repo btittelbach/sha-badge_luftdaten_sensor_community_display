@@ -14,7 +14,7 @@ sc_pm_sensor_id_ = int(badge.nvs_get_str(
 ))
 sc_env_sensor_id_ = sc_pm_sensor_id_ +1
 sc_api_url_ = "https://data.sensor.community/airrohr/v1/sensor/{sensorid}/"
-sc_update_interval_ = 250*1000
+sc_update_interval_ = 250
 
 
 sensordata_ = {}
