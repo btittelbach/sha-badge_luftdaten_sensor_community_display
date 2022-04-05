@@ -7,6 +7,7 @@ import time
 import display
 
 
+
 sc_pm_sensor_id_ = int(badge.nvs_get_str(
     "sensorcommunity",
     "sid",
@@ -18,6 +19,21 @@ sc_update_interval_ = 250
 
 
 sensordata_ = {}
+
+weathericons = {
+	"arrowup": "\xf0\x58",
+	"arrowdown": "\xf0\x44",
+	"thermometer": "\xf0\x55",
+	"cloud": "\xf0\x41",
+	"degree": "\xf0\x42",
+	"degC": "\xf0\x3c",
+}
+
+fonticons = {
+	"degC":"\x21\x03",
+	"arrowup": "\x2b\x4e",
+	"arrowdown": "\x2b\x4f"
+}
 
 def clearRect(rect):
     x, y, w, h = rect
