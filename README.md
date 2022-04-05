@@ -4,6 +4,8 @@ It is a simple app to get data from an AirRohr sensor and display it in a very s
 
 The app assumes that you have a dustsensor + environmental sensor with two consecutive sensor-ids.
 
+Pull-Requests welcome. Project is currently evolving on [GitHub](https://github.com/btittelbach/sha-badge_luftdaten_sensor_community_display/)
+
 ## configuration
 
 1. connect your badge via USB
