@@ -5,7 +5,9 @@ import wifi
 import badge
 import time
 import display
-
+import buttons
+import system
+import mutex
 
 sc_pm_sensor_id_ = int(badge.nvs_get_str(
     "sensorcommunity",
@@ -16,6 +18,7 @@ sc_env_sensor_id_ = sc_pm_sensor_id_ +1
 sc_api_url_ = "https://data.sensor.community/airrohr/v1/sensor/{sensorid}/"
 sc_update_interval_ = 250
 
+loop_reentrance_avoidance_lock_ = mutex.Mutex()
 
 sensordata_ = {}
 
@@ -28,6 +31,7 @@ weathericons = {
     "degC": "\xf0\x3c",
 }
 
+usefont = "roboto"
 fonticons = {
     "degC":"\x21\x03",
     "arrowup": "\x2b\x4e",
@@ -47,7 +51,7 @@ def drawLabel(rect, type_max_width, stype, svalue):
     label_h = max([display.getTextHeight(stype), display.getTextHeight(svalue)])
     texty = y + h//2 - label_h//2
     display.drawText(x, texty, stype, 0)
-    display.drawText(x+type_max_width+2, texty, ": " + svalue, 0)
+    display.drawText(x+type_max_width+2, texty, ": " + svalue, 0, usefont)
     # display.drawText(x + w//2 - label_w//2, y + h//2 - label_h//2, label, 0)
 
 def printSensorData():
@@ -89,6 +93,8 @@ def getSensorData(sids_list):
     sensordata_["Time"] = time.strftime("%H:%M  %Y-%m-%d UTC")
 
 def loop():
+    if not loop_reentrance_avoidance_lock_.test():
+        return 3
     if not wifi.status():
         print("connecting to WiFi")
         wifi.connect()
@@ -104,8 +110,15 @@ def loop():
     printSensorData()
     print("rendering data on epaper")
     displaySensorData()
+    loop_reentrance_avoidance_lock_.release()
     return sc_update_interval_
 
+def buttonExitApp():
+    system.home()
+
+button.attach("A", loop)
+button.attach("B", loop)
+button.attach("START", buttonExitApp)
 
 while True:
     time.sleep(loop())
