@@ -22,8 +22,9 @@ Pull-Requests welcome. Project is currently evolving on [GitHub](https://github.
 
 ## Todo
 
-- [ ] exit via START button press
-- [ ] force update via A/B button press
-- [ ] display time of last successfull update
-- [ ] larger, easier-to-read text with units instead of json dump
+- [x] exit via START button press
+- [x] force update via A/B button press
+- [x] don't display outdated values
+- [x] larger, easier-to-read text with units instead of json dump
+- [ ] add value subtitle description or make font even larger
 - [ ] maybe a history graph or at least up/down arrow indicating current trend
