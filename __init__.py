@@ -32,7 +32,8 @@ sensordata_ = {}
 # normfont = "PermanentMarker36"
 # normfont = "Exo2_Bold22"
 
-normfont = "Exo2_Thin18"
+valuefont = "Exo2_Bold18"
+unitfont = "Exo2_Thin18"
 weatherfont = "weather42"
 weathericons = {
     "arrowup": "\x59", #89
@@ -56,7 +57,33 @@ def drawGrid():
     for r in range(1,rows):
         display.drawLine(0, boxheight*(c), display.width(), boxheight*(c), 0)
 
-def drawData(key, unit, unitfont, scale, row, column):
+def drawTextReturnWidth(x,y,text,font,scale=1):
+    display.drawText(x, y, text, 0, font, scale, scale)
+    return display.getTextWidth(text, font) * scale
+
+def draw2Liner(x,y,font,line1,line2):
+    display.drawText(x, y, line1, 0, font)
+    w1 = display.getTextWidth(line1, font)
+    y += display.getTextHeight(line1, font)
+    display.drawText(x, y, line2, 0, font)
+    w2 = display.getTextWidth(line2, font)
+    return max(w1,w2)
+
+def drawDegChar(x, y, char, font, scale):
+    # c_height = display.getTextHeight(char, font)*scale
+    c_width = display.getTextWidth(char, font)*scale
+    r = scale*2
+    display.drawCircle(x+r,y+r+7,r,0,360,False,0)
+    display.drawText(x+2*r,y,char,0,font,scale,scale)
+    return 2*r+c_width
+
+drawPM10 = lambda x,y: draw2Liner(x+2,y,unitfont,"PM","10")+2
+drawPM2 = lambda x,y: draw2Liner(x+2,y,unitfont,"PM","2.5")+2
+drawPercent = lambda x,y: drawTextReturnWidth(x, y, "%", unitfont, 2)
+# drawDegC = lambda x,y: drawTextReturnWidth(x, y, weathericons["degC"], weatherfont, 1)
+drawDegC = lambda x,y: drawDegChar(x, y, "C", unitfont, 2)
+
+def drawData(key, drawunitfunc, row, column):
     rows = 2
     columns = 2
     boxwidth = display.width() // columns
@@ -68,10 +95,9 @@ def drawData(key, unit, unitfont, scale, row, column):
     x = boxwidth * column
     y = boxheight * row
     value = str(sensordata_[key].value)
-    display.drawText(x, y, value, 0, normfont, 2, 2)
-    x += display.getTextWidth(value, normfont) * 2
-    display.drawText(x, y, unit, 0, unitfont, scale, scale)
-    x += display.getTextWidth(unit, unitfont) * scale
+    display.drawText(x, y, value, 0, valuefont, 2, 2)
+    x += display.getTextWidth(value, valuefont) * 2
+    x += drawunitfunc(x, y)
     display.drawText(x, y, str(sensordata_[key].trend), 0, weatherfont)
 
 
@@ -112,12 +138,12 @@ def displaySensorDataBetter():
         display.flush()
         return
     drawGrid()
-    drawData("temperature",weathericons["degC"], weatherfont,1, 0, 0)
-    drawData("humidity","%", normfont,2, 0, 1)
-    drawData("P1"," PM10", normfont,2, 1, 0)
-    drawData("P2"," PM2.5", normfont,2, 1, 1)
-    # drawData("pressure","Pa", normfont, 2, 0)
-    # drawData("pressure_at_sealevel","Pa", normfont, 2, 1)
+    drawData("temperature",drawDegC, 0, 0)
+    drawData("humidity",drawPercent, 0, 1)
+    drawData("P1",drawPM10, 1, 0)
+    drawData("P2",drawPM2, 1, 1)
+    # drawData("pressure",..., 2, 0)
+    # drawData("pressure_at_sealevel",..., 2, 1)
     display.flush()
 
 
@@ -155,6 +181,7 @@ def getSensorData(sids_list):
     # sensordata_["Time"] = SensorTuple(time.strftime("%H:%M  %Y-%m-%d UTC"),"")
 
 def displayMsg(msg):
+    print(msg)
     easydraw.msg(msg)
     # label_h = display.getTextHeight(msg)
     # y = display.height()-label_h
@@ -167,12 +194,13 @@ def loop():
         return 3000
     loop_reentrance_avoidance_lock_ = True
     if not wifi.status():
-        print("connecting to WiFi")
+        displayMsg("connecting to WiFi")
         wifi.connect()
     if not wifi.wait(6):
-        print("WiFi wait timed out")
+        displayMsg("WiFi wait timed out")
         return 10000
 
+    displayMsg("updating ...")
     wifi.ntp()
     #get sensordata
     print("getting data")
@@ -188,7 +216,6 @@ def buttonExitApp(pressed):
     system.home()
 
 def buttonForceUpdate(pressed):
-    displayMsg("updating ...")
     loop()
 
 buttons.attach(buttons.BTN_A, buttonForceUpdate)
