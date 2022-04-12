@@ -200,7 +200,6 @@ def loop():
         displayMsg("WiFi wait timed out")
         return 10000
 
-    displayMsg("updating ...")
     wifi.ntp()
     #get sensordata
     print("getting data")
@@ -213,9 +212,14 @@ def loop():
     return sc_update_interval_
 
 def buttonExitApp(pressed):
+    if pressed:
+        return
     system.home()
 
 def buttonForceUpdate(pressed):
+    if pressed:
+        return
+    displayMsg("updating ...")
     loop()
 
 buttons.attach(buttons.BTN_A, buttonForceUpdate)
@@ -226,7 +230,7 @@ for x in range(0,2):
     display.drawRect(0, 0, display.width(), display.height(), True, 0xffffff) ## clear display
     display.flush()
 
-displayMsg("getting sensordata from data.sensor.community ...")
+displayMsg("getting data from data.sensor.community ...")
 # while True:
 #     system.sleep(loop())
 
