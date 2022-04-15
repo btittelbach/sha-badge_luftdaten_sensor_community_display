@@ -26,5 +26,5 @@ Pull-Requests welcome. Project is currently evolving on [GitHub](https://github.
 - [x] force update via A/B button press
 - [x] don't display outdated values
 - [x] larger, easier-to-read text with units instead of json dump
-- [ ] add value subtitle description or make font even larger
-- [ ] maybe a history graph or at least up/down arrow indicating current trend
+- [x] add value subtitle description or make font even larger
+- [x] up/down arrow indicating current trend

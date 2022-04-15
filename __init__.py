@@ -21,19 +21,16 @@ sc_api_url_ = "https://data.sensor.community/airrohr/v1/sensor/{sensorid}/"
 sc_update_interval_ = 250000
 sc_max_age_ = sc_update_interval_ / 1000 * 3
 
+trend_no_change_range_ = 0.2
+
 loop_reentrance_avoidance_lock_ = False ## in absence of mutex module
 
 SensorTuple = namedtuple("SensorTuple",("value","trend","ts"))
 sensordata_ = {}
 
-# normfont = "Roboto_Regular12"
-# normfont = "Roboto_Black22"
-# normfont = "Ocra22"
-# normfont = "PermanentMarker36"
-# normfont = "Exo2_Bold22"
-
-valuefont = "Exo2_Bold18"
+valuefont = "Exo2_Bold22"
 unitfont = "Exo2_Thin18"
+y_px_offset_between_value_unit_font_ = 6
 weatherfont = "weather42"
 weathericons = {
     "arrowup": "\x59", #89
@@ -94,19 +91,16 @@ def drawData(key, drawunitfunc, row, column):
         return ## data is too old, don't display
     x = boxwidth * column
     y = boxheight * row
-    value = str(sensordata_[key].value)
+    value = "%.1f" % (sensordata_[key].value)
     display.drawText(x, y, value, 0, valuefont, 2, 2)
     x += display.getTextWidth(value, valuefont) * 2
-    x += drawunitfunc(x, y)
-    display.drawText(x, y, str(sensordata_[key].trend), 0, weatherfont)
+    x += drawunitfunc(x, y+y_px_offset_between_value_unit_font_) + 1
+    display.drawText(x, y+y_px_offset_between_value_unit_font_, str(sensordata_[key].trend), 0, weatherfont)
 
 
 def drawLabel(rect, type_max_width, stype, svalue):
     x, y, w, h = rect
     clearRect(rect)
-    # padding = " " * (type_max_width-len(stype))
-    # label = "{}:".format(stype, padding, svalue)
-    # label_w = display.getTextWidth(label)
     label_h = max([display.getTextHeight(stype), display.getTextHeight(svalue)])
     texty = y + h//2 - label_h//2
     display.drawText(x, texty, stype, 0)
@@ -158,35 +152,29 @@ def getSensorData(sids_list):
         jsonData = apiConnection.json()
         apiConnection.close()
         now = time.time()
-        if len(jsonData) > 1:
+        if len(jsonData) > 0:
             if "sensordatavalues" in jsonData[0]:
                 for sdv in jsonData[0]["sensordatavalues"]:
-                    sensordata_[sdv["value_type"]] = SensorTuple(value=sdv["value"], trend="", ts=now)
-        if len(jsonData) > 2:
+                    sensordata_[sdv["value_type"]] = SensorTuple(value=float(sdv["value"]), trend="", ts=now)
+        if len(jsonData) > 1:
             if "sensordatavalues" in jsonData[-1]:
                 for sdv in jsonData[-1]["sensordatavalues"]:
                     try:
-                        if sensordata_[sdv["value_type"]].value > sdv["value"] +1:
-                            sensordata_[sdv["value_type"]].trend = weathericons["arrowup"]
-                        elif sensordata_[sdv["value_type"]].value < sdv["value"] -1:
-                            sensordata_[sdv["value_type"]].trend = weathericons["arrowdown"]
-                    except:
+                        if sensordata_[sdv["value_type"]].value > float(sdv["value"]) + trend_no_change_range_:
+                            sensordata_[sdv["value_type"]] = SensorTuple(value=sensordata_[sdv["value_type"]].value, trend=weathericons["arrowup"], ts=sensordata_[sdv["value_type"]].ts)
+                        elif sensordata_[sdv["value_type"]].value < float(sdv["value"]) - trend_no_change_range_:
+                            sensordata_[sdv["value_type"]] = SensorTuple(value=sensordata_[sdv["value_type"]].value, trend=weathericons["arrowdown"], ts=sensordata_[sdv["value_type"]].ts)
+                        else:
+                            print(sdv["value_type"], "no change",sensordata_[sdv["value_type"]].value, "==", sdv["value"])
+                    except Exception as e:
+                        print(e)
+                        print(jsonData[-1]["sensordatavalues"])
                         pass
 
-        # except:
-        #   print("getSensorData failed")
-        #   api_fail_ct_ = api_fail_ct_ +1
-        #   if (api_fail_ct_ > 4):
-        #       sensordata_ = {} # delete outdated sensordata
-    # sensordata_["Time"] = SensorTuple(time.strftime("%H:%M  %Y-%m-%d UTC"),"")
 
 def displayMsg(msg):
     print(msg)
     easydraw.msg(msg)
-    # label_h = display.getTextHeight(msg)
-    # y = display.height()-label_h
-    # clearRect([0,y,display.width(),label_h])
-    # display.drawText(0, y, msg, 0, usefont)
 
 def loop():
     global loop_reentrance_avoidance_lock_
@@ -231,8 +219,6 @@ for x in range(0,2):
     display.flush()
 
 displayMsg("getting data from data.sensor.community ...")
-# while True:
-#     system.sleep(loop())
 
 
 virtualtimers.begin(100)
