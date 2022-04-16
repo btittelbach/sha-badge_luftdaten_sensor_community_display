@@ -27,6 +27,7 @@ loop_reentrance_avoidance_lock_ = False ## in absence of mutex module
 
 SensorTuple = namedtuple("SensorTuple",("value","trend","ts"))
 sensordata_ = {}
+trenddata_ = {}
 
 valuefont = "Exo2_Bold22"
 unitfont = "Exo2_Thin18"
@@ -160,12 +161,19 @@ def getSensorData(sids_list):
             if "sensordatavalues" in jsonData[-1]:
                 for sdv in jsonData[-1]["sensordatavalues"]:
                     try:
-                        if sensordata_[sdv["value_type"]].value > float(sdv["value"]) + trend_no_change_range_:
-                            sensordata_[sdv["value_type"]] = SensorTuple(value=sensordata_[sdv["value_type"]].value, trend=weathericons["arrowup"], ts=sensordata_[sdv["value_type"]].ts)
-                        elif sensordata_[sdv["value_type"]].value < float(sdv["value"]) - trend_no_change_range_:
-                            sensordata_[sdv["value_type"]] = SensorTuple(value=sensordata_[sdv["value_type"]].value, trend=weathericons["arrowdown"], ts=sensordata_[sdv["value_type"]].ts)
+                        sensortype = sdv["value_type"]
+                        change = sensordata_[sensortype].value - float(sdv["value"])
+                        if not sensortype in trenddata_:
+                            trenddata_[sensortype] = change
+                        ## calc running average over changes to smooth out noise or oscillations
+                        trenddata_[sensortype] = 0.9*trenddata_[sensortype] + 0.1*change
+                        ## convert trenddata into arrow symbol
+                        if trenddata_[sensortype] > trend_no_change_range_:
+                            sensordata_[sensortype] = SensorTuple(value=sensordata_[sensortype].value, trend=weathericons["arrowup"], ts=sensordata_[sensortype].ts)
+                        elif trenddata_[sensortype] < trend_no_change_range_:
+                            sensordata_[sensortype] = SensorTuple(value=sensordata_[sensortype].value, trend=weathericons["arrowdown"], ts=sensordata_[sensortype].ts)
                         else:
-                            print(sdv["value_type"], "no change",sensordata_[sdv["value_type"]].value, "==", sdv["value"])
+                            print(sensortype, "no change",trenddata_[sensortype])
                     except Exception as e:
                         print(e)
                         print(jsonData[-1]["sensordatavalues"])
