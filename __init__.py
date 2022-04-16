@@ -74,8 +74,8 @@ def drawDegChar(x, y, char, font, scale):
     display.drawText(x+2*r,y,char,0,font,scale,scale)
     return 2*r+c_width
 
-drawPM10 = lambda x,y: draw2Liner(x+2,y,unitfont,"PM","10")+2
-drawPM2 = lambda x,y: draw2Liner(x+2,y,unitfont,"PM","2.5")+2
+drawPM10 = lambda x,y: draw2Liner(x+2,y+4,unitfont,"PM","10")+2
+drawPM2 = lambda x,y: draw2Liner(x+2,y+4,unitfont,"PM","2.5")+2
 drawPercent = lambda x,y: drawTextReturnWidth(x, y, "%", unitfont, 2)
 # drawDegC = lambda x,y: drawTextReturnWidth(x, y, weathericons["degC"], weatherfont, 1)
 drawDegC = lambda x,y: drawDegChar(x, y, "C", unitfont, 2)
