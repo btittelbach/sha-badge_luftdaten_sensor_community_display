@@ -22,6 +22,7 @@ sc_update_interval_ = 250000
 sc_max_age_ = sc_update_interval_ / 1000 * 3
 
 trend_no_change_range_ = 0.2
+trend_history_smooth_factor_ = 0.9
 
 loop_reentrance_avoidance_lock_ = False ## in absence of mutex module
 
@@ -156,28 +157,18 @@ def getSensorData(sids_list):
         if len(jsonData) > 0:
             if "sensordatavalues" in jsonData[0]:
                 for sdv in jsonData[0]["sensordatavalues"]:
-                    sensordata_[sdv["value_type"]] = SensorTuple(value=float(sdv["value"]), trend="", ts=now)
-        if len(jsonData) > 1:
-            if "sensordatavalues" in jsonData[-1]:
-                for sdv in jsonData[-1]["sensordatavalues"]:
-                    try:
-                        sensortype = sdv["value_type"]
-                        change = sensordata_[sensortype].value - float(sdv["value"])
-                        if not sensortype in trenddata_:
-                            trenddata_[sensortype] = change
-                        ## calc running average over changes to smooth out noise or oscillations
-                        trenddata_[sensortype] = 0.9*trenddata_[sensortype] + 0.1*change
-                        ## convert trenddata into arrow symbol
-                        if trenddata_[sensortype] > trend_no_change_range_:
-                            sensordata_[sensortype] = SensorTuple(value=sensordata_[sensortype].value, trend=weathericons["arrowup"], ts=sensordata_[sensortype].ts)
-                        elif trenddata_[sensortype] < trend_no_change_range_:
-                            sensordata_[sensortype] = SensorTuple(value=sensordata_[sensortype].value, trend=weathericons["arrowdown"], ts=sensordata_[sensortype].ts)
-                        else:
-                            print(sensortype, "no change",trenddata_[sensortype])
-                    except Exception as e:
-                        print(e)
-                        print(jsonData[-1]["sensordatavalues"])
-                        pass
+                    sensortype = sdv["value_type"]
+                    val = float(sdv["value"])
+                    if not sensortype in trenddata_:
+                        trenddata_[sensortype] = val
+                    trenddata_[sensortype] = trend_history_smooth_factor_*trenddata_[sensortype] + (1.0-trend_history_smooth_factor_)*val
+                    change_rel_to_avg = val - trenddata_[sensortype]
+                    trend=""
+                    if change_rel_to_avg > trend_no_change_range_:
+                        trend=weathericons["arrowup"]
+                    elif change_rel_to_avg < -1.0*trend_no_change_range_:
+                        trend=weathericons["arrowdown"]
+                    sensordata_[sensortype] = SensorTuple(value=val, trend=trend, ts=now)
 
 
 def displayMsg(msg):
