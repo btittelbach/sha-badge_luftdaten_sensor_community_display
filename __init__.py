@@ -179,6 +179,7 @@ def loop():
     global loop_reentrance_avoidance_lock_
     if loop_reentrance_avoidance_lock_:
         return 3000
+    next_update_in_ms = sc_update_interval_
     try:
         loop_reentrance_avoidance_lock_ = True
         if not wifi.status():
@@ -186,17 +187,19 @@ def loop():
             wifi.connect()
         if not wifi.wait(6):
             displayMsg("WiFi wait timed out")
-            return 10000
-
-        wifi.ntp()
-        #get sensordata
-        print("getting data")
-        getSensorData([sc_pm_sensor_id_, sc_env_sensor_id_])
-        print("printing data")
-        printSensorData()
+            next_update_in_ms /= 2
+        else:
+            wifi.ntp()
+            #get sensordata
+            print("getting data")
+            getSensorData([sc_pm_sensor_id_, sc_env_sensor_id_])
+            print("printing data")
+            printSensorData()
         print("rendering data on epaper")
+        ## note: outdated data will not be rendered.
+        ##       without wifi, all data may time out and we may render blank screen
         displaySensorDataBetter()
-        return sc_update_interval_
+        return next_update_in_ms
     finally:
         loop_reentrance_avoidance_lock_ = False
 
