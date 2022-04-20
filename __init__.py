@@ -133,7 +133,7 @@ def displaySensorDataBetter():
         display.drawText(2, 2, "X", 0, "permanentmarker22", 2, 2)
         display.flush()
         return
-    drawGrid()
+    #drawGrid()
     drawData("temperature",drawDegC, 0, 0)
     drawData("humidity",drawPercent, 0, 1)
     drawData("P1",drawPM10, 1, 0)
