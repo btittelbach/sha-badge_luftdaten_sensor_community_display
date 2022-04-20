@@ -89,11 +89,11 @@ def drawData(key, drawunitfunc, row, column):
     boxheight = display.height() // rows
     if not key in sensordata_:
         return
+    value = "%.1f" % (sensordata_[key].value)
     if sensordata_[key].ts + sc_max_age_ <= time.time():
-        return ## data is too old, don't display
+        value = "??" ## data is too old
     x = boxwidth * column
     y = boxheight * row
-    value = "%.1f" % (sensordata_[key].value)
     display.drawText(x, y, value, 0, valuefont, 2, 2)
     x += display.getTextWidth(value, valuefont) * 2
     x += drawunitfunc(x, y+y_px_offset_between_value_unit_font_) + 1
