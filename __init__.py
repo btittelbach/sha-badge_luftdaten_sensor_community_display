@@ -179,24 +179,27 @@ def loop():
     global loop_reentrance_avoidance_lock_
     if loop_reentrance_avoidance_lock_:
         return 3000
-    loop_reentrance_avoidance_lock_ = True
-    if not wifi.status():
-        displayMsg("connecting to WiFi")
-        wifi.connect()
-    if not wifi.wait(6):
-        displayMsg("WiFi wait timed out")
-        return 10000
+    try:
+        loop_reentrance_avoidance_lock_ = True
+        if not wifi.status():
+            displayMsg("connecting to WiFi")
+            wifi.connect()
+        if not wifi.wait(6):
+            displayMsg("WiFi wait timed out")
+            return 10000
 
-    wifi.ntp()
-    #get sensordata
-    print("getting data")
-    getSensorData([sc_pm_sensor_id_, sc_env_sensor_id_])
-    print("printing data")
-    printSensorData()
-    print("rendering data on epaper")
-    displaySensorDataBetter()
-    loop_reentrance_avoidance_lock_ = False
-    return sc_update_interval_
+        wifi.ntp()
+        #get sensordata
+        print("getting data")
+        getSensorData([sc_pm_sensor_id_, sc_env_sensor_id_])
+        print("printing data")
+        printSensorData()
+        print("rendering data on epaper")
+        displaySensorDataBetter()
+        return sc_update_interval_
+    finally:
+        loop_reentrance_avoidance_lock_ = False
+
 
 def buttonExitApp(pressed):
     if pressed:
