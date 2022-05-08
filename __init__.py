@@ -19,7 +19,7 @@ sc_pm_sensor_id_ = int(badge.nvs_get_str(
 sc_env_sensor_id_ = sc_pm_sensor_id_ +1
 sc_api_url_ = "https://data.sensor.community/airrohr/v1/sensor/{sensorid}/"
 sc_update_interval_ = 250000
-sc_max_age_ = sc_update_interval_ / 1000 * 3
+sc_max_age_ = sc_update_interval_ // 1000 * 3
 
 trend_no_change_range_ = 0.2
 trend_history_smooth_factor_ = 0.9
@@ -187,7 +187,7 @@ def loop():
             wifi.connect()
         if not wifi.wait(6):
             displayMsg("WiFi wait timed out")
-            next_update_in_ms /= 2
+            next_update_in_ms //= 2
         else:
             wifi.ntp()
             #get sensordata
@@ -199,9 +199,9 @@ def loop():
         ## note: outdated data will not be rendered.
         ##       without wifi, all data may time out and we may render blank screen
         displaySensorDataBetter()
-        return next_update_in_ms
     finally:
         loop_reentrance_avoidance_lock_ = False
+        return next_update_in_ms
 
 
 def buttonExitApp(pressed):
