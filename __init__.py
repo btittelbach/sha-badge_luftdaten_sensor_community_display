@@ -32,6 +32,7 @@ trenddata_ = {}
 
 valuefont = "Exo2_Bold22"
 unitfont = "Exo2_Thin18"
+timefont = "roboto_regular12"
 y_px_offset_between_value_unit_font_ = 6
 weatherfont = "weather42"
 weathericons = {
@@ -83,6 +84,7 @@ drawPercent = lambda x,y: drawTextReturnWidth(x, y, "%", unitfont, 2)
 drawDegC = lambda x,y: drawDegChar(x, y, "C", unitfont, 2)
 
 def drawData(key, drawunitfunc, row, column):
+    print("drawData", key)
     rows = 2
     columns = 2
     boxwidth = display.width() // columns
@@ -99,6 +101,12 @@ def drawData(key, drawunitfunc, row, column):
     x += drawunitfunc(x, y+y_px_offset_between_value_unit_font_) + 1
     display.drawText(x, y+y_px_offset_between_value_unit_font_, str(sensordata_[key].trend), 0, weatherfont)
 
+def drawTime():
+    print("drawTime")
+    (year, month, mday, hour, minute, second, weekday, yearday) = time.gmtime()
+    timestr = "%02d:%02d UTC" % (hour,minute)
+    time_w = display.getTextWidth(timestr, timefont)
+    display.drawText(display.width()-60, display.height()-12, timestr, 0, timefont)
 
 def drawLabel(rect, type_max_width, stype, svalue):
     x, y, w, h = rect
@@ -140,6 +148,7 @@ def displaySensorDataBetter():
     drawData("P2",drawPM2, 1, 1)
     # drawData("pressure",..., 2, 0)
     # drawData("pressure_at_sealevel",..., 2, 1)
+    drawTime()
     display.flush()
 
 
@@ -151,7 +160,12 @@ def getSensorData(sids_list):
         if not apiConnection:
             print("httprequest failed")
             continue
-        jsonData = apiConnection.json()
+        jsonData = {}
+        try:
+            jsonData = apiConnection.json()
+        except:
+            print("json decoding error")
+            continue
         apiConnection.close()
         now = time.time()
         if len(jsonData) > 0:
@@ -169,6 +183,8 @@ def getSensorData(sids_list):
                     elif change_rel_to_avg < -1.0*trend_no_change_range_:
                         trend=weathericons["arrowdown"]
                     sensordata_[sensortype] = SensorTuple(value=val, trend=trend, ts=now)
+        else:
+            print("json was empty")
 
 
 def displayMsg(msg):
@@ -189,8 +205,11 @@ def loop():
             displayMsg("WiFi wait timed out")
             next_update_in_ms //= 2
         else:
+            displayMsg("connected")
+            displayMsg("syncing NTP")
             wifi.ntp()
             #get sensordata
+            displayMsg("contacting sensor.community API")
             print("getting data")
             getSensorData([sc_pm_sensor_id_, sc_env_sensor_id_])
             print("printing data")
@@ -199,7 +218,11 @@ def loop():
         ## note: outdated data will not be rendered.
         ##       without wifi, all data may time out and we may render blank screen
         displaySensorDataBetter()
+    except Exception as e:
+        displayMsg("Exception caught")
+        print(e)
     finally:
+        print("finally continuing")
         loop_reentrance_avoidance_lock_ = False
         return next_update_in_ms
 

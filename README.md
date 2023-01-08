@@ -28,3 +28,4 @@ Pull-Requests welcome. Project is currently evolving on [GitHub](https://github.
 - [x] larger, easier-to-read text with units instead of json dump
 - [x] add value subtitle description or make font even larger
 - [x] up/down arrow indicating current trend
+- [x] indicate UTC time on screen so user can gauge last update
