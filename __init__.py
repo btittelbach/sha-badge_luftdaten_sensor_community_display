@@ -26,6 +26,9 @@ trend_history_smooth_factor_ = 0.9
 
 loop_reentrance_avoidance_lock_ = False ## in absence of mutex module
 
+sequential_exception_error_count_ = 0
+sequential_exception_error_limit_ = 5
+
 SensorTuple = namedtuple("SensorTuple",("value","trend","ts"))
 sensordata_ = {}
 trenddata_ = {}
@@ -192,7 +195,7 @@ def displayMsg(msg):
     easydraw.msg(msg)
 
 def loop():
-    global loop_reentrance_avoidance_lock_
+    global loop_reentrance_avoidance_lock_, sequential_exception_error_count_, sequential_exception_error_count_
     if loop_reentrance_avoidance_lock_:
         return 3000
     next_update_in_ms = sc_update_interval_
@@ -218,9 +221,13 @@ def loop():
         ## note: outdated data will not be rendered.
         ##       without wifi, all data may time out and we may render blank screen
         displaySensorDataBetter()
+        sequential_exception_error_count_ = 0
     except Exception as e:
         displayMsg("Exception caught")
         print(e)
+        sequential_exception_error_count_ += 1
+        if sequential_exception_error_count_ > sequential_exception_error_limit_:
+            system.reboot()
     finally:
         print("finally continuing")
         loop_reentrance_avoidance_lock_ = False
